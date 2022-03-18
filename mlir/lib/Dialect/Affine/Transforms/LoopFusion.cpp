@@ -48,8 +48,10 @@ namespace {
 
 struct LoopFusion : public AffineLoopFusionBase<LoopFusion> {
   LoopFusion() = default;
-  LoopFusion(unsigned fastMemorySpace, uint64_t localBufSizeThresholdBytes,
-             bool maximalFusion, enum FusionMode affineFusionMode) {
+  LoopFusion(double computeToleranceThreshold, unsigned fastMemorySpace,
+             uint64_t localBufSizeThresholdBytes, bool maximalFusion,
+             enum FusionMode affineFusionMode) {
+    this->computeToleranceThreshold = computeToleranceThreshold;
     this->fastMemorySpace = fastMemorySpace;
     this->localBufSizeThreshold = localBufSizeThresholdBytes / 1024;
     this->maximalFusion = maximalFusion;
@@ -62,10 +64,12 @@ struct LoopFusion : public AffineLoopFusionBase<LoopFusion> {
 } // namespace
 
 std::unique_ptr<OperationPass<func::FuncOp>>
-mlir::createLoopFusionPass(unsigned fastMemorySpace,
+mlir::createLoopFusionPass(double computeToleranceThreshold,
+                           unsigned fastMemorySpace,
                            uint64_t localBufSizeThreshold, bool maximalFusion,
                            enum FusionMode affineFusionMode) {
-  return std::make_unique<LoopFusion>(fastMemorySpace, localBufSizeThreshold,
+  return std::make_unique<LoopFusion>(computeToleranceThreshold,
+                                      fastMemorySpace, localBufSizeThreshold,
                                       maximalFusion, affineFusionMode);
 }
 

@@ -70,11 +70,10 @@ std::unique_ptr<OperationPass<func::FuncOp>> createLoopCoalescingPass();
 /// Creates a loop fusion pass which fuses loops according to type of fusion
 /// specified in `fusionMode`. Buffers of size less than or equal to
 /// `localBufSizeThreshold` are promoted to memory space `fastMemorySpace`.
-std::unique_ptr<OperationPass<func::FuncOp>>
-createLoopFusionPass(unsigned fastMemorySpace = 0,
-                     uint64_t localBufSizeThreshold = 0,
-                     bool maximalFusion = false,
-                     enum FusionMode fusionMode = FusionMode::Greedy);
+std::unique_ptr<OperationPass<func::FuncOp>> createLoopFusionPass(
+    double computeToleranceThreshold = 0.3, unsigned fastMemorySpace = 0,
+    uint64_t localBufSizeThreshold = 0, bool maximalFusion = false,
+    enum FusionMode fusionMode = FusionMode::Greedy);
 
 /// Creates a pass to perform tiling on loop nests.
 std::unique_ptr<OperationPass<func::FuncOp>>

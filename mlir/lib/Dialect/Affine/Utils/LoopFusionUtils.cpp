@@ -482,7 +482,7 @@ bool mlir::getLoopNestStats(AffineForOp forOpRoot, LoopNestStats *stats) {
   auto walkResult = forOpRoot.walk([&](AffineForOp forOp) {
     auto *childForOp = forOp.getOperation();
     auto *parentForOp = forOp->getParentOp();
-    if (!llvm::isa<func::FuncOp>(parentForOp)) {
+    if (forOp != forOpRoot) {
       if (!isa<AffineForOp>(parentForOp)) {
         LLVM_DEBUG(llvm::dbgs() << "Expected parent AffineForOp\n");
         return WalkResult::interrupt();

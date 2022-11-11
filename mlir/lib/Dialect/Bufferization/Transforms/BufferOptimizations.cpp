@@ -314,7 +314,8 @@ struct BufferAllocationLoopHoistingState : BufferAllocationHoistingStateBase {
 
   /// Returns true if the given operation should be considered for hoisting.
   static bool shouldHoistOpType(Operation *op) {
-    return llvm::isa<memref::AllocOp, memref::AllocaOp>(op);
+    return hasEffect<MemoryEffects::Allocate>(op);
+    // return llvm::isa<memref::AllocOp, memref::AllocaOp>(op);
   }
 
   /// Does not change the internal placement block, as we want to move

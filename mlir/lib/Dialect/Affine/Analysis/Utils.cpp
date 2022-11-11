@@ -41,6 +41,8 @@ void mlir::getAffineForIVs(Operation &op, SmallVectorImpl<AffineForOp> *loops) {
     if (AffineForOp currAffineForOp = dyn_cast<AffineForOp>(currOp))
       loops->push_back(currAffineForOp);
     currOp = currOp->getParentOp();
+    if (!isa<AffineForOp, AffineIfOp>(currOp))
+      break;
   }
   std::reverse(loops->begin(), loops->end());
 }

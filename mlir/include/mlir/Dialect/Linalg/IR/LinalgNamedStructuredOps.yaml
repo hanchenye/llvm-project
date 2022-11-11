@@ -2592,11 +2592,11 @@ structured_op: !LinalgStructuredOpConfig
   indexing_maps: !LinalgIndexingMapsConfig
     static_indexing_maps:
     - affine_map<(d0, d1, d2, d3, d4, d5)[s0, s1, s2, s3, s4, s5, s6, s7, s8, s9]
-      -> (d0, d3, d1 * s3 + d4 * s5, d2 * s7 + d5 * s9)>
+      -> (d0, d1, d2 * s2 + d4 * s4, d3 * s6 + d5 * s8)>
     - affine_map<(d0, d1, d2, d3, d4, d5)[s0, s1, s2, s3, s4, s5, s6, s7, s8, s9]
-      -> (d3, d4, d5)>
+      -> (d1, d4, d5)>
     - affine_map<(d0, d1, d2, d3, d4, d5)[s0, s1, s2, s3, s4, s5, s6, s7, s8, s9]
-      -> (d0, d3, d1, d2)>
+      -> (d0, d1, d2, d3)>
   iterator_types:
   - parallel
   - parallel

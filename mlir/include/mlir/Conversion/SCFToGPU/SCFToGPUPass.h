@@ -40,6 +40,8 @@ std::unique_ptr<InterfacePass<FunctionOpInterface>> createAffineForToGPUPass();
 /// for a description of the used attributes.
 std::unique_ptr<Pass> createParallelLoopToGpuPass();
 
+std::unique_ptr<InterfacePass<FunctionOpInterface>> createFooPassPass();
+
 } // namespace mlir
 
 #endif // MLIR_CONVERSION_SCFTOGPU_SCFTOGPUPASS_H_

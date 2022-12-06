@@ -719,6 +719,12 @@ def SCFToSPIRV : Pass<"convert-scf-to-spirv"> {
 // SCFToGPU
 //===----------------------------------------------------------------------===//
 
+def FooPass : InterfacePass<"foo-pass", "FunctionOpInterface"> {
+  let summary = "A foo pass";
+  let constructor = "mlir::createFooPassPass()";
+  let dependentDialects = ["gpu::GPUDialect"];
+}
+
 def ConvertAffineForToGPU
     : InterfacePass<"convert-affine-for-to-gpu", "FunctionOpInterface"> {
   let summary = "Convert top-level AffineFor Ops to GPU kernels";

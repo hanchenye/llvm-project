@@ -22,6 +22,7 @@
 namespace mlir {
 #define GEN_PASS_DEF_CONVERTAFFINEFORTOGPU
 #define GEN_PASS_DEF_CONVERTPARALLELLOOPTOGPU
+#define GEN_PASS_DEF_FOOPASS
 #include "mlir/Conversion/Passes.h.inc"
 } // namespace mlir
 
@@ -79,4 +80,17 @@ mlir::createAffineForToGPUPass() {
 
 std::unique_ptr<Pass> mlir::createParallelLoopToGpuPass() {
   return std::make_unique<ParallelLoopToGpuPass>();
+}
+
+namespace {
+struct FooPass : public impl::FooPassBase<FooPass> {
+  void runOnOperation() override {
+    // The pass will be implemented here.
+    getOperation().emitOpError("found an operation");
+  }
+};
+} // namespace
+
+std::unique_ptr<InterfacePass<FunctionOpInterface>> mlir::createFooPassPass() {
+  return std::make_unique<FooPass>();
 }

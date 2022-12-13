@@ -42,6 +42,8 @@ std::unique_ptr<Pass> createParallelLoopToGpuPass();
 
 std::unique_ptr<InterfacePass<FunctionOpInterface>> createFooPassPass();
 
+void registerScaleCUDAPipeline();
+
 } // namespace mlir
 
 #endif // MLIR_CONVERSION_SCFTOGPU_SCFTOGPUPASS_H_

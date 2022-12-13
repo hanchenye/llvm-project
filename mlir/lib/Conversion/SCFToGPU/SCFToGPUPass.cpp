@@ -58,6 +58,7 @@ struct ForLoopMapper : public impl::ConvertAffineForToGPUBase<ForLoopMapper> {
           signalPassFailure();
       }
     }
+      printf("finished affine-for-to-gpu pass\n");
   }
 };
 
@@ -133,6 +134,8 @@ struct FooPass : public impl::FooPassBase<FooPass> {
     {
       op->emitOpError("Invalid Loop Interchange Permutation\n");
     }
+
+    printf("finished foo-pass\n");
   }
 };
 } // namespace
@@ -143,19 +146,20 @@ std::unique_ptr<InterfacePass<FunctionOpInterface>> mlir::createFooPassPass() {
 
 
 namespace{
-  struct MyPipelineOptions : public PassPipelineOptions<MyPipelineOptions> {
+  struct ScaleCUDAPipelineOptions : public PassPipelineOptions<ScaleCUDAPipelineOptions> {
     // The structure of these options is the same as those for pass options.
-    Option<int> exampleOption{*this, "flag-name", llvm::cl::desc("...")};
-    ListOption<int> exampleListOption{*this, "list-flag-name",
-                                      llvm::cl::desc("...")};
+    // Option<int> exampleOption{*this, "flag-name", llvm::cl::desc("...")};
+    // ListOption<int> exampleListOption{*this, "list-flag-name",
+    //                                   llvm::cl::desc("...")};
   };
 }
 
-void registerMyPasses() {
-    mlir::PassPipelineRegistration<MyPipelineOptions>(
-    "foo-pipeline", "Optimize affine on gpu dialect", [](OpPassManager &pm, const MyPipelineOptions &opts) {
+//NOTE: also added a call to this in: llvm-project/mlir/include/mlir/InitAllPasses.h
+// and a declaration in: llvm-project/mlir/include/mlir/Conversion/SCFToGPU/SCFToGPUPass.h
+void mlir::registerScaleCUDAPipeline() {
+    mlir::PassPipelineRegistration<ScaleCUDAPipelineOptions>(
+    "scalecuda-pipeline", "Optimize Affine on the GPU dialect", [](OpPassManager &pm, const ScaleCUDAPipelineOptions &opts) {
       pm.addPass(mlir::createFooPassPass());
       pm.addPass(mlir::createAffineForToGPUPass());
     });
 }
-

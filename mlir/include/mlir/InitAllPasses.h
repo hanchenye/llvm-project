@@ -78,6 +78,9 @@ inline void registerAllPasses() {
 
   // Dialect pipelines
   sparse_tensor::registerSparseTensorPipelines();
+
+  // Custom Pipelines
+  mlir::registerScaleCUDAPipeline();
 }
 
 } // namespace mlir

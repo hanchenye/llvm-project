@@ -42,6 +42,8 @@ std::unique_ptr<Pass> createParallelLoopToGpuPass();
 
 std::unique_ptr<InterfacePass<FunctionOpInterface>> createFooPassPass();
 
+std::unique_ptr<Pass> createAffineToMemrefPass();
+
 void registerScaleCUDAPipeline();
 
 } // namespace mlir

@@ -719,6 +719,12 @@ def SCFToSPIRV : Pass<"convert-scf-to-spirv"> {
 // SCFToGPU
 //===----------------------------------------------------------------------===//
 
+def AffineToMemref : Pass<"affine-to-memref", "func::FuncOp"> {
+  let summary = "Convert Affine memory refferences to Memref";
+  let constructor = "mlir::createAffineToMemrefPass()";
+  let dependentDialects = ["AffineDialect", "memref::MemRefDialect"];
+}
+
 def FooPass : InterfacePass<"foo-pass", "FunctionOpInterface"> {
   let summary = "A foo pass";
   let constructor = "mlir::createFooPassPass()";

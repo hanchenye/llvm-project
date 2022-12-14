@@ -7,6 +7,10 @@
 //===----------------------------------------------------------------------===//
 #include <iostream>
 #include "mlir/Conversion/SCFToGPU/SCFToGPUPass.h"
+#include "mlir/Transforms/GreedyPatternRewriteDriver.h"
+#include "mlir/Dialect/MemRef/IR/MemRef.h"
+#include "mlir/Dialect/Affine/Utils.h"
+#include "mlir/Conversion/AffineToStandard/AffineToStandard.h"
 #include "mlir/Dialect/Affine/LoopUtils.h"
 #include "mlir/IR/Operation.h"
 #include "mlir/Conversion/SCFToGPU/SCFToGPU.h"
@@ -26,12 +30,15 @@
 #include "mlir/Pass/PassManager.h"
 #include "mlir/Transforms/Passes.h"
 #include "mlir/Pass/PassRegistry.h"
+#include "mlir/Dialect/Func/IR/FuncOps.h"
 // #include "/usr/include/llvm-10/llvm/Support/CommandLine.h"
 
 namespace mlir {
 #define GEN_PASS_DEF_CONVERTAFFINEFORTOGPU
 #define GEN_PASS_DEF_CONVERTPARALLELLOOPTOGPU
 #define GEN_PASS_DEF_FOOPASS
+#define GEN_PASS_DEF_AFFINETOMEMREF
+
 #include "mlir/Conversion/Passes.h.inc"
 } // namespace mlir
 
@@ -39,7 +46,7 @@ using namespace mlir;
 using namespace mlir::scf;
 
 namespace {
-// A pass that traverses top-level loops in the function and converts them to
+// A pass that traverses top-level loops in the function a#define GEN_PASS_DEF_FOOPASSnd converts them to
 // GPU launch operations.  Nested launches are not allowed, so this does not
 // walk the function recursively to avoid considering nested loops.
 struct ForLoopMapper : public impl::ConvertAffineForToGPUBase<ForLoopMapper> {
@@ -90,6 +97,63 @@ mlir::createAffineForToGPUPass() {
 
 std::unique_ptr<Pass> mlir::createParallelLoopToGpuPass() {
   return std::make_unique<ParallelLoopToGpuPass>();
+}
+
+class AffineLoadLowering : public OpRewritePattern<AffineLoadOp> {
+public:
+  using OpRewritePattern<AffineLoadOp>::OpRewritePattern;
+
+  LogicalResult matchAndRewrite(AffineLoadOp op,
+                                PatternRewriter &rewriter) const override {
+    // Expand affine map from 'affineLoadOp'.
+    SmallVector<Value, 8> indices(op.getMapOperands());
+    auto resultOperands =
+        expandAffineMap(rewriter, op.getLoc(), op.getAffineMap(), indices);
+    if (!resultOperands)
+      return failure();
+
+    // Build vector.load memref[expandedMap.results].
+    rewriter.replaceOpWithNewOp<memref::LoadOp>(op, op.getMemRef(),
+                                                *resultOperands);
+    return success();
+  }
+};
+
+class AffineStoreLowering : public OpRewritePattern<AffineStoreOp> {
+public:
+   using OpRewritePattern<AffineStoreOp>::OpRewritePattern;
+  
+   LogicalResult matchAndRewrite(AffineStoreOp op,
+                                 PatternRewriter &rewriter) const override {
+     // Expand affine map from 'affineStoreOp'.
+     SmallVector<Value, 8> indices(op.getMapOperands());
+     auto maybeExpandedMap =
+         expandAffineMap(rewriter, op.getLoc(), op.getAffineMap(), indices);
+     if (!maybeExpandedMap)
+       return failure();
+  
+     // Build memref.store valueToStore, memref[expandedMap.results].
+     rewriter.replaceOpWithNewOp<memref::StoreOp>(
+         op, op.getValueToStore(), op.getMemRef(), *maybeExpandedMap);
+     return success();
+   }
+};
+
+namespace {
+struct AffineToMemref : public impl::AffineToMemrefBase<AffineToMemref> {
+  void runOnOperation() override {
+    auto func = getOperation();
+    auto context = func.getContext();
+
+    mlir::RewritePatternSet patterns(context);
+    patterns.add<AffineLoadLowering, AffineStoreLowering>(context);
+    (void)applyPatternsAndFoldGreedily(func, std::move(patterns));
+  }
+};
+}
+
+std::unique_ptr<Pass> mlir::createAffineToMemrefPass() {
+  return std::make_unique<AffineToMemref>();
 }
 
 namespace {
@@ -160,6 +224,7 @@ void mlir::registerScaleCUDAPipeline() {
     mlir::PassPipelineRegistration<ScaleCUDAPipelineOptions>(
     "scalecuda-pipeline", "Optimize Affine on the GPU dialect", [](OpPassManager &pm, const ScaleCUDAPipelineOptions &opts) {
       pm.addPass(mlir::createFooPassPass());
+      pm.addPass(mlir::createAffineToMemrefPass());
       pm.addPass(mlir::createAffineForToGPUPass());
     });
 }
